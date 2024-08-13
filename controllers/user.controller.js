@@ -5,14 +5,17 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 
+const userService = require('../service/user.service');
+const CustomError = require('../lib/custom.error');
+
+
 
 
 //authentication
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
-    successResponse(res, 'successfully fetched all users',   { totalUsers: users.length, users });
-
+    const allUsers = await userService.getAllUsers();
+    successResponse(res, 'successfully fetched all users', { totalUsers: allUsers.length, allUsers });
   } catch (err) {
     errorResponse(res, 'getAllUsers', err);
   }
@@ -24,10 +27,14 @@ const signup = async (req, res, err) => {
     let { name, email, password, confirmPassword, role } = req.body;
 
     const checkEmail = await User.findOne({ email });
-    if (checkEmail) { throw new CustomError("auth_error", 400, "Email Has Already Been Registered") };
+    if (checkEmail) {
+      throw new CustomError("auth_error", 400, "Email Has Already Been Registered");
+    };
 
-    if (password != confirmPassword) { throw new CustomError("auth_error", 400, "Password Not Matches") };
-    password = await  bcrypt.hash(password,12);
+    if (password != confirmPassword){ 
+      throw new CustomError("auth_error", 400, "Password Not Matches");
+    };
+    password = await bcrypt.hash(password, 12);
 
     const user = new User({
       name,
@@ -37,14 +44,13 @@ const signup = async (req, res, err) => {
 
     });
 
-
     await user.save();
 
     let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: 86400 // expires in 24 hours
     });
 
-    successResponse(res, 'user registration successfull',   { token, user });
+    successResponse(res, 'user registration successfull', { token, user });
 
   } catch (err) {
     errorResponse(res, 'signup', err);
@@ -58,11 +64,11 @@ const loginUser = async (req, res) => {
     if (!user) {
       throw new CustomError("auth_error", 400, "User Not Exist")
     }
-    else if (await bcrypt.compare(req.body.password,user.password)) {
+    else if (await bcrypt.compare(req.body.password, user.password)) {
       let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
         expiresIn: 86400 // expires in 24 hours
       });
-      successResponse(res, 'user loggedin successfully',   { token, user });
+      successResponse(res, 'user loggedin successfully', { token, user });
     } else {
       throw new CustomError("auth_error", 400, "Invalid Credentials")
     }
@@ -73,7 +79,7 @@ const loginUser = async (req, res) => {
 
 const getMe = (req, res) => {
   try {
-    successResponse(res, 'user fetched successfully',   req.user);
+    successResponse(res, 'user fetched successfully', req.user);
   } catch (err) {
     errorResponse(res, 'getMe', err);
   }
@@ -89,7 +95,7 @@ const editUser = async (req, res) => {
     user.email = email || req.user.email;
 
     await user.save();
-    successResponse(res, 'user info updated',   user);
+    successResponse(res, 'user info updated', user);
   } catch (err) {
     errorResponse(res, 'editUser', err);
   }
@@ -98,7 +104,7 @@ const editUser = async (req, res) => {
 //admin function
 const deleteUser = async (req, res) => {
   try {
-    successResponse(res, 'user info',   req.user);
+    successResponse(res, 'user info', req.user);
   } catch (err) {
     errorResponse(res, 'deleteUser', err);
   }

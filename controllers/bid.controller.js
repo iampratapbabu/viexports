@@ -45,7 +45,6 @@ const createBid = async (req, res) => {
 const getSingleBid = async (req, res) => {
     try {
         const { bidId } = req.params;
-
         const bid = await Bid.findById(bidId).populate('tender');
         successResponse(res, 'bid fetched',   bid);
 

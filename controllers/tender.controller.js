@@ -32,8 +32,6 @@ const getAllTendersPublic = async (req, res) => {
             )
             singleTender.lowestBidAmount = lowestBid[0] ?lowestBid[0]?.amount : 0;
         }
-
- 
         successResponse(res, 'tender fetched',   { totalTenders: tenders.length, tenders });
 
     } catch (err) {
@@ -47,7 +45,6 @@ const createTender = async (req, res) => {
         const { name, desc, startTime, endTime, bufferTime } = req.body;
         if (req.user.role != "ADMIN") {
             throw new CustomError("auth_error", 400, "Not Authorized to Create Tender")
-
         }
         const tender = new Tender({
             user: req.user._id,
@@ -75,7 +72,6 @@ const getSingleTender = async (req, res) => {
         const tender = await Tender.findById(tenderId);
         const bids = await Bid.find({ tender: tenderId }).sort('amount').populate('user');
         successResponse(res, 'tender fetched',   { tender: tender, totalBids: bids.length, bids });
-
     } catch (err) {
         errorResponse(res, 'getSingleTender', err);
     }
