@@ -1,0 +1,3 @@
+exports.getCode = () =>{
+    return "USER"
+}
